@@ -1,0 +1,25 @@
+---
+  - hosts: lnx-01
+
+    vars:
+     nic: eth1
+     ip: 192.168.25.30/24
+     gw: 192.168.25.1
+     dns1: 8.8.8.8
+
+    tasks:
+      - name: Setting IP
+        nmcli:
+          conn_name: "{{nic}}"
+          ifname: "{{nic}}"
+          type: ethernet
+          state: present
+          autoconnect: yes
+          ip4: "{{ip}}"
+          gw4: "{{gw}}"
+          dns4: "{{dns1}}"
+
+      - name: Restart Network
+        service:
+          name: network
+          state: restarted

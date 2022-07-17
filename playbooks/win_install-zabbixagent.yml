@@ -1,0 +1,36 @@
+---
+- hosts: winservers
+
+  tasks:
+  - name: Copying files to install ZabbixAgent
+    ansible.windows.win_copy:
+      src: /root/zabbixagent-windows/bin
+      dest: c:\zabbixagent\
+
+  - name: Installing ZabbixAgent
+    win_command: C:\zabbixagent\bin\zabbix_agentd.exe --install
+
+  - name: Getting Network Information
+    win_shell: '$result = (Get-NetIPAddress -InterfaceAlias Ethernet -AddressFamily IPv4);$client_addr = $result[0].IPAddress;$octets = $client_addr.Split(".");$octets[2]'
+    register: octet
+
+  - set_fact:
+     thirdoctet={{ octet.stdout }}
+
+  - debug:
+      var: thirdoctet
+
+  - name: Copying ZabbixAgent Config file for network 15
+    ansible.windows.win_copy:
+      src: /root/zabbixagent-windows/conf/zabbix_agentd-net15.conf
+      dest: c:\zabbix_agentd.conf
+    when: thirdoctet == "15\r\n"
+
+  - name: Copying ZabbixAgent Config file for network 25
+    ansible.windows.win_copy:
+      src: /root/zabbixagent-windows/conf/zabbix_agentd-net25.conf
+      dest: c:\zabbix_agentd.conf
+    when: thirdoctet == "25\r\n"
+
+  - name: Starting ZabbixAgent Service
+    win_command: C:\zabbixagent\bin\zabbix_agentd.exe --start

@@ -1,0 +1,25 @@
+---
+- hosts: win01
+  vars:
+    nic: Ethernet
+    ip: 192.168.25.65
+    prefix: 24
+    gw: 192.168.25.1
+    dns1: 8.8.8.8
+    dns2: 1.1.1.1
+  tasks:
+   - name: Removing IP Address 
+     ansible.windows.win_powershell:
+       script: "Remove-NetIPAddress -InterfaceAlias {{nic}} -Confirm:$false"
+
+   - name: Removing Default Gateway
+     ansible.windows.win_powershell:
+       script: "Remove-NetRoute -InterfaceAlias {{nic}} -Confirm:$false"
+
+   - name: Setting a new IP
+     ansible.windows.win_powershell:	   
+       script: "Get-NetIpAddress -InterfaceAlias {{nic}} | New-NetIpAddress -IpAddress {{ip}} -PrefixLength {{prefix}} -DefaultGateway {{gw}}"
+
+   - name: Setting DNS Server
+     ansible.windows.win_powershell:	   
+       script: "Set-DnsClientServerAddress -InterfaceAlias {{nic}} -ServerAddresses ('{{dns1}}','{{dns2}}')"

@@ -1,0 +1,25 @@
+---
+- hosts: servers
+  tasks:
+  - name: Installing Zabbix-agent
+    yum:
+     name: zabbix-agent
+     state: present
+
+  - name: Copying zabbix-agentd.conf for network 15
+    ansible.builtin.copy:
+      src: /root/zabbixconfig/zabbix_agentd-net15.conf
+      dest: /etc/zabbix_agentd.conf
+    when: ansible_eth1.ipv4.network == "192.168.15.0"
+
+  - name: Copying zabbix-agentd.conf for network 25
+    ansible.builtin.copy:
+      src: /root/zabbixconfig/zabbix_agentd-net25.conf
+      dest: /etc/zabbix_agentd.conf
+    when: ansible_eth1.ipv4.network == "192.168.25.0"
+
+  - name: Restarting Zabbix-agent Service
+    service:
+      name: zabbix-agent
+      state: restarted
+
